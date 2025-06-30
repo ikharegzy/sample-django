@@ -1,6 +1,6 @@
 # Task 1 — Docker Image Optimisation
 
-This document explains what I changed in the Dockerfile, why I did it and how those changes affected image size and build speed. I describe the strategies in plain language so the reasoning is clear without resorting to bullet lists.
+This document explains what I changed in the Dockerfile, why I did it and how those changes affected image size and build speed.
 
 ## Strategies to shrink the image
 
@@ -12,4 +12,4 @@ I switched to a multi-stage build. The first stage named **builder** uses `pytho
 
 ## Improvements in build time
 
-On a cold machine the first build now finishes in roughly twenty seconds instead of the previous forty. A rebuild after changing one Python module takes about seven seconds because every heavy layer is already cached. Re-ordering instructions so that slow steps occur early plays a large part in that result.
+ The first build now finishes in roughly twenty seconds instead of the previous forty. A rebuild after changing one Python module takes about seven seconds because every heavy layer is already cached. Re-ordering instructions so that slow steps occur early plays a large part in that result.
