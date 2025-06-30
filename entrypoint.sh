@@ -1,4 +1,16 @@
-#!/usr/bin/env bash
+#!/bin/sh
+set -e
+
+echo "Applying migrations ..."
 python manage.py migrate --noinput
-python manage.py collectstatic --noinput --verbosity 0
+
+if [ "${MIGRATE_AND_CREATE_USER_ON_STARTUP:-false}" = "true" ]; then
+  echo "Creating superuser (idempotent) ..."
+  python manage.py createsuperuser --noinput \
+    --username "$DJANGO_SU_NAME" \
+    --email "$DJANGO_SU_EMAIL" \
+    || true     
+fi
+
+echo "Starting gunicorn ..."
 exec "$@"
