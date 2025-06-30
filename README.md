@@ -46,14 +46,16 @@ Logs from both containers stream to the terminal; stop them any time with Ctrl-C
 After code changes just rerun the same command — layer caching keeps rebuilds fast.
 Shut the stack down when you’re done:
 
-```docker compose down       # leaves the postgres_data volume intact
+```
+docker compose down       # leaves the postgres_data volume intact
 # need a completely fresh database?
 docker compose down -v       # also removes the volume
 ```
 
 ## What teammates need to do
 
-```git clone <repo>
+```
+git clone <repo>
 cp .env.example .env   # edit three variables
 docker compose up --build
 # hack away…
