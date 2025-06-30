@@ -1,15 +1,41 @@
-# Task 1 — Docker Image Optimisation
+# Task 2 — Implementing Docker Compose for Local Development
 
-This document explains what I changed in the Dockerfile, why I did it and how those changes affected image size and build speed.
+This repository is ready for out-of-the-box local development thanks to Docker Compose.
+The compose file (docker-compose.yml) describes two services:
 
-## Strategies to shrink the image
+db – a lightweight postgres:17-alpine container that initialises with the credentials you place in .env.
+web – a Django application built from the Dockerfile in the project root.
+At start-up the entry-point script waits for Postgres, runs all migrations, optionally creates an admin user and then launches Gunicorn on port 8000.
+Why Compose is helpful
 
-I switched to a multi-stage build. The first stage named **builder** uses `python:3.11-slim` together with the minimal set of tools required only for compilation. After the wheels are built, everything that was needed for compilation is discarded. The second stage named **runtime** starts from the same slim base image but receives only the wheels and the application code; no compilers, headers or package lists survive the stage boundary. I also ran `pip wheel` instead of `pip install` in the builder stage to create deterministic archives that install quickly later. Finally, I kept the build context small by adding a concise `.dockerignore` so Docker does not send test data or cache directories to the daemon.
+Running both services through Compose removes host-to-host inconsistencies: everyone on the team gets the same Python, Django and Postgres versions, the same environment variables and the same network names. You no longer need to install or configure Postgres locally, rebuild virtual-envs or remember how to start Gunicorn. One command spins the whole stack up, another tears it down, keeping your workstation clean.
 
-## Leveraging layer caching
+One-time preparation
 
-`requirements.txt` is copied before any source files. That single line means Docker can reuse the expensive dependency layer whenever the requirements have not changed. After that layer is cached, editing a source file causes only the fast “copy source” step to invalidate. Because the wheels are deterministic, the wheel layer itself is also cached across builds on CI.
+Make sure Docker Desktop (or Docker Engine + Compose CLI) is installed and running.
+Copy .env.example to .env and fill in three variables:
 
-## Improvements in build time
+POSTGRES_DB=django
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=choose-a-strong-password
 
- The first build now finishes in roughly twenty seconds instead of the previous forty. A rebuild after changing one Python module takes about seven seconds because every heavy layer is already cached. Re-ordering instructions so that slow steps occur early plays a large part in that result.
+These values feed both the database container and Django’s DATABASE_URL.
+No other software is required on the host. The first build may take a minute while images are downloaded and Python wheels are cached.
+
+Daily workflow for any teammate
+
+Open a terminal in the repository root and type:
+
+docker compose --env-file .env up --build
+
+Compose reads the variables from .env, builds the application image if it is not cached, brings db online and, once Postgres is healthy, starts the Django service.
+– The site is now reachable at http://localhost:8000.
+– Logs from both containers stream to the terminal; stop them at any moment with Ctrl-C.
+– To rebuild after code changes just rerun the same command. Docker layer caching keeps rebuilds fast.
+– When you finish, tidy everything with:
+
+docker compose down
+This command stops containers and removes the dedicated network while leaving your database volume (postgres_data) intact.
+If you need a completely fresh database, add the -v flag: docker compose down -v.
+
+That is all your teammates need: clone the repo, edit .env, run docker compose up --build, code as usual and shut the stack down when done.
