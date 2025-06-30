@@ -1,41 +1,56 @@
 # Task 2 — Implementing Docker Compose for Local Development
 
-This repository is ready for out-of-the-box local development thanks to Docker Compose.
-The compose file (docker-compose.yml) describes two services:
+This repository is ready for local work thanks to **Docker Compose**.
 
-db – a lightweight postgres:17-alpine container that initialises with the credentials you place in .env.
-web – a Django application built from the Dockerfile in the project root.
-At start-up the entry-point script waits for Postgres, runs all migrations, optionally creates an admin user and then launches Gunicorn on port 8000.
-Why Compose is helpful
+`docker-compose.yml` starts two services:
 
-Running both services through Compose removes host-to-host inconsistencies: everyone on the team gets the same Python, Django and Postgres versions, the same environment variables and the same network names. You no longer need to install or configure Postgres locally, rebuild virtual-envs or remember how to start Gunicorn. One command spins the whole stack up, another tears it down, keeping your workstation clean.
+* **db** — lightweight `postgres:17-alpine` initialised with the credentials from `.env`  
+* **web** — the Django app built from the Dockerfile at the project root
 
-One-time preparation
+At launch the entry-point script waits for Postgres, runs migrations, *optionally* creates an admin user and finally starts Gunicorn on **port 8000**.
 
-Make sure Docker Desktop (or Docker Engine + Compose CLI) is installed and running.
-Copy .env.example to .env and fill in three variables:
+---
 
+## Why Compose is useful
+
+Running both services through Compose removes “works-on-my-machine” issues.  
+Everyone on the team gets identical Python, Django and Postgres versions, the same environment variables and predictable network names.  
+No local Postgres install, no virtual-env rebuilds, no remembering Gunicorn flags.  
+One command brings the stack up; another tears it down and keeps your workstation clean.
+
+---
+
+## One-time preparation
+
+1. Install and run Docker Desktop (or Docker Engine + Compose CLI).  
+2. Copy `.env.example` → `.env` and fill **three** variables:
+
+```env
 POSTGRES_DB=django
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=choose-a-strong-password
-
 These values feed both the database container and Django’s DATABASE_URL.
-No other software is required on the host. The first build may take a minute while images are downloaded and Python wheels are cached.
+The first build can take a minute while images download and Python wheels cache.
 
-Daily workflow for any teammate
+## Daily workflow
 
-Open a terminal in the repository root and type:
+Start or rebuild everything:
 
 docker compose --env-file .env up --build
+Compose reads .env, builds the image if needed, waits for Postgres to become healthy and then starts Django.
+The site is now reachable at http://localhost:8000.
+Logs from both containers stream to the terminal; stop them any time with Ctrl-C.
+After code changes just rerun the same command — layer caching keeps rebuilds fast.
+Shut the stack down when you’re done:
 
-Compose reads the variables from .env, builds the application image if it is not cached, brings db online and, once Postgres is healthy, starts the Django service.
-– The site is now reachable at http://localhost:8000.
-– Logs from both containers stream to the terminal; stop them at any moment with Ctrl-C.
-– To rebuild after code changes just rerun the same command. Docker layer caching keeps rebuilds fast.
-– When you finish, tidy everything with:
+docker compose down          # leaves the postgres_data volume intact
+# need a completely fresh database?
+docker compose down -v       # also removes the volume
+What teammates need to do
 
-docker compose down
-This command stops containers and removes the dedicated network while leaving your database volume (postgres_data) intact.
-If you need a completely fresh database, add the -v flag: docker compose down -v.
-
-That is all your teammates need: clone the repo, edit .env, run docker compose up --build, code as usual and shut the stack down when done.
+git clone <repo>
+cp .env.example .env   # edit three variables
+docker compose up --build
+# hack away…
+docker compose down    # and you’re finished
+That’s it — no other host software required.
