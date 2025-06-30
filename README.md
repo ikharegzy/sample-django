@@ -29,6 +29,8 @@ One command brings the stack up; another tears it down and keeps your workstatio
 POSTGRES_DB=django
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=choose-a-strong-password
+```
+
 These values feed both the database container and Django’s DATABASE_URL.
 The first build can take a minute while images download and Python wheels cache.
 
@@ -36,21 +38,24 @@ The first build can take a minute while images download and Python wheels cache.
 
 Start or rebuild everything:
 
-docker compose --env-file .env up --build
+```docker compose --env-file .env up --build```
+
 Compose reads .env, builds the image if needed, waits for Postgres to become healthy and then starts Django.
 The site is now reachable at http://localhost:8000.
 Logs from both containers stream to the terminal; stop them any time with Ctrl-C.
 After code changes just rerun the same command — layer caching keeps rebuilds fast.
 Shut the stack down when you’re done:
 
-docker compose down          # leaves the postgres_data volume intact
+```docker compose down          # leaves the postgres_data volume intact
 # need a completely fresh database?
-docker compose down -v       # also removes the volume
-What teammates need to do
+docker compose down -v       # also removes the volume```
 
-git clone <repo>
+## What teammates need to do
+
+```git clone <repo>
 cp .env.example .env   # edit three variables
 docker compose up --build
 # hack away…
-docker compose down    # and you’re finished
+docker compose down    # and you’re finished```
+
 That’s it — no other host software required.
