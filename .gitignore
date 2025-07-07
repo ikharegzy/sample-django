@@ -12,3 +12,4 @@ override.tf.json
 terraform.tfvars           
 *.tfplan.env
 .env
+values.secret.dec.yaml

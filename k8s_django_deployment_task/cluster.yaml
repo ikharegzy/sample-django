@@ -1,0 +1,20 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: mxinfo-django               
+  region: us-east-1
+  version: "1.33"                   
+
+vpc:                                
+  cidr: "10.0.0.0/16"
+
+managedNodeGroups:
+  - name: ng-general
+    instanceType: t3.small          
+    desiredCapacity: 3              
+    minSize: 2
+    maxSize: 5
+    iam:
+      withAddonPolicies:
+        ebs: true               

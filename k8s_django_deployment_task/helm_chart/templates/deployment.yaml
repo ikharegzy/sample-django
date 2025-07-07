@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "django-sample.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "django-sample.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "django-sample.fullname" . }}
+    spec:
+      containers:
+        - name: web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["gunicorn"]
+          args:
+            - "mysite.wsgi:application"
+            - "--bind"
+            - "0.0.0.0:8000"
+            - "--workers"
+            - "3"
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "django-sample.fullname" . }}-env
+            - secretRef:
+                name: {{ include "django-sample.fullname" . }}-secret
+          readinessProbe:
+            httpGet: { path: {{ .Values.readinessProbe.path }}, port: http }
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          livenessProbe:
+            httpGet: { path: {{ .Values.livenessProbe.path }}, port: http }
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+

@@ -1,0 +1,10 @@
+releases:
+  - name: django-sample
+    namespace: web
+    createNamespace: true
+    chart: ../helm_chart
+    version: 0.1.0
+    values:
+      - ../helm_chart/values.yaml
+    secrets:
+      - ../helm_chart/values.secret.yaml

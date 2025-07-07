@@ -1,0 +1,55 @@
+replicaCount: 2
+
+image:
+  repository: 034362050349.dkr.ecr.us-east-1.amazonaws.com/django-sample
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+env:                    
+  DJANGO_SETTINGS_MODULE: mysite.settings
+  DJANGO_ALLOWED_HOSTS: "*"
+  POSTGRES_DB: django
+  MIGRATE_AND_CREATE_USER_ON_STARTUP: "true"
+  DJANGO_SU_NAME: admin
+  DJANGO_SU_EMAIL: admin@example.com
+
+service:
+  enabled: true  
+  port: 80
+  targetPort: 8000
+  type: ClusterIP 
+
+ingress:
+  enabled: true
+  className: alb
+  hosts:
+    - host: app.mxinfo.xyz 
+      paths: ["/"]
+  tls:
+    - secretName: app-tls
+      hosts: ["app.mxinfo.xyz"]
+
+resources:
+  requests: { cpu: 250m, memory: 256Mi }
+  limits:   { cpu: 500m, memory: 512Mi }
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 8000
+    initialDelaySeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8000
+    httpHeaders:
+    initialDelaySeconds: 5
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+

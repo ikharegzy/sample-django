@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "django-sample.fullname" . }}
+  labels:
+    app: {{ include "django-sample.fullname" . }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ include "django-sample.fullname" . }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }} 
+      protocol: TCP
